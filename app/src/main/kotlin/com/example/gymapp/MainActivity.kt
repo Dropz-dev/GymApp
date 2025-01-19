@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.navigation
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
