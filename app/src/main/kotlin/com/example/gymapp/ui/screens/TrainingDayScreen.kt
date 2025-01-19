@@ -1,3 +1,5 @@
+package com.example.gymapp.ui.screens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -6,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.gymapp.data.model.TrainingDay
+import com.example.gymapp.data.model.ExerciseSet
 
 @Composable
 fun TrainingDayScreen(
@@ -55,7 +59,7 @@ private fun ExerciseCard(
                 text = exercise.exerciseName,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(height = 8.dp)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween

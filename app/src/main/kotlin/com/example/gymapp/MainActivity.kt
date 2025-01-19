@@ -1,3 +1,5 @@
+package com.example.gymapp
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -5,7 +7,13 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.compose.navigation
+import com.example.gymapp.data.model.Program
+import com.example.gymapp.data.model.TrainingDay
+import com.example.gymapp.data.model.ExerciseSet
+import com.example.gymapp.navigation.Screen
+import com.example.gymapp.ui.screens.HomeScreen
+import com.example.gymapp.ui.screens.ProgramListScreen
+import com.example.gymapp.ui.screens.TrainingDayScreen
 import com.example.gymapp.ui.theme.GymAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -63,9 +71,9 @@ class MainActivity : ComponentActivity() {
                         // Find the training day (in a real app, this would come from a ViewModel)
                         val trainingDay = sampleProgram.trainingDays.find { it.id == dayId }
                         
-                        trainingDay?.let {
+                        trainingDay?.let { day ->
                             TrainingDayScreen(
-                                trainingDay = it,
+                                trainingDay = day,
                                 onExerciseCompleted = { exerciseId, reps ->
                                     // TODO: Save the completed exercise
                                 }
