@@ -4,10 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.compose.navigation
+import androidx.navigation.navArgument
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
@@ -64,7 +65,11 @@ class MainActivity : ComponentActivity() {
                     }
                     
                     composable(
-                        route = Screen.TrainingDay.route
+                        route = Screen.TrainingDay.route,
+                        arguments = listOf(
+                            navArgument("programId") { type = NavType.StringType },
+                            navArgument("dayId") { type = NavType.StringType }
+                        )
                     ) { backStackEntry ->
                         val programId = backStackEntry.arguments?.getString("programId")?.toLongOrNull() ?: return@composable
                         val dayId = backStackEntry.arguments?.getString("dayId")?.toLongOrNull() ?: return@composable
