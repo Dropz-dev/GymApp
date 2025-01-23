@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                         ExerciseSet(2L, "Shoulder Press", 60f, 10),
                         ExerciseSet(3L, "Triceps Extension", 30f, 12)
                     )
-                ),
+                )
                 // Add Pull and Legs days similarly
             )
         )
@@ -44,8 +44,11 @@ class MainActivity : ComponentActivity() {
             GymAppTheme {
                 val navController = rememberNavController()
                 
-                NavHost(navController = navController, startDestination = Screen.Home.route) {
-                    composable(Screen.Home.route) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Home.route
+                ) {
+                    composable(route = Screen.Home.route) {
                         HomeScreen(
                             onNavigateToPrograms = {
                                 navController.navigate(Screen.ProgramList.route)
@@ -53,7 +56,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     
-                    composable(Screen.ProgramList.route) {
+                    composable(route = Screen.ProgramList.route) {
                         ProgramListScreen(
                             programs = listOf(sampleProgram),
                             onProgramSelected = { programId, dayId ->
