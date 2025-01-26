@@ -8,14 +8,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
 import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,8 +87,34 @@ fun GymmiApp() {
         
         composable("create_workout") {
             CreateWorkoutScreen(
-                onWorkoutCreated = {
-                    // For now, just navigate back to home
+                onWorkoutCreated = { type, date ->
+                    // Navigate to exercise selection with workout type and date
+                    navController.navigate(
+                        "select_exercises/${type.name}/${date}"
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = "select_exercises/{workoutType}/{date}",
+            arguments = listOf(
+                navArgument("workoutType") { type = NavType.StringType },
+                navArgument("date") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val workoutType = WorkoutType.valueOf(
+                backStackEntry.arguments?.getString("workoutType") ?: WorkoutType.PUSH.name
+            )
+            val date = LocalDate.parse(
+                backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
+            )
+            
+            ExerciseSelectionScreen(
+                workoutType = workoutType,
+                date = date,
+                onSaveWorkout = {
+                    // Navigate back to home after saving
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }
