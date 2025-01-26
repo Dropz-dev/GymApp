@@ -127,18 +127,26 @@ fun GymmiApp(
             val date = LocalDate.parse(
                 backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
             )
+
+            val selectedExercises = navController
+                .currentBackStackEntry
+                ?.savedStateHandle
+                ?.get<List<WorkoutExercise>>("selected_exercises") ?: emptyList()
             
             WorkoutTrackingScreen(
                 workoutType = workoutType,
                 date = date,
+                initialExercises = selectedExercises,
                 onAddExercises = {
                     navController.navigate(
                         "select_exercises/${workoutType.name}/${date}"
                     )
                 },
                 onSaveWorkout = { workout ->
-                    pendingWorkout = workout
-                    navController.navigate("workout_summary")
+                    onSaveWorkout(workout)
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
                 }
             )
         }
@@ -160,7 +168,10 @@ fun GymmiApp(
             ExerciseSelectionScreen(
                 workoutType = workoutType,
                 date = date,
-                onSaveWorkout = {
+                onSaveWorkout = { selectedExercises ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_exercises", selectedExercises)
                     navController.popBackStack()
                 }
             )

@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gymapp.data.model.Exercise
 import com.example.gymapp.data.model.ExerciseList
 import com.example.gymapp.data.model.ExerciseCategory
+import com.example.gymapp.data.model.WorkoutExercise
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -18,7 +19,7 @@ import java.time.format.DateTimeFormatter
 fun ExerciseSelectionScreen(
     workoutType: WorkoutType,
     date: LocalDate,
-    onSaveWorkout: () -> Unit
+    onSaveWorkout: (List<WorkoutExercise>) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
@@ -100,7 +101,12 @@ fun ExerciseSelectionScreen(
         }
 
         Button(
-            onClick = onSaveWorkout,
+            onClick = {
+                val workoutExercises = selectedExercises.map { exercise ->
+                    WorkoutExercise(exercise = exercise, sets = emptyList())
+                }
+                onSaveWorkout(workoutExercises)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
