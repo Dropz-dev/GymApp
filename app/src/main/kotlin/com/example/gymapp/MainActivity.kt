@@ -6,13 +6,16 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.gymapp.data.WorkoutDatabase
+import com.example.gymapp.data.model.Workout
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
@@ -21,10 +24,15 @@ import com.example.gymapp.data.model.WorkoutExercise
 import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
 import java.time.LocalDate
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private lateinit var database: WorkoutDatabase
+    private var currentWorkout: Workout? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        database = WorkoutDatabase.getDatabase(this)
         
         // Sample program data
         val sampleProgram = Program(
@@ -49,7 +57,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    GymmiApp()
+                    GymmiApp(
+                        onSaveWorkout = { workout ->
+                            lifecycleScope.launch {
+                                database.workoutDao().insertFullWorkout(workout)
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -57,8 +71,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun GymmiApp() {
+fun GymmiApp(
+    onSaveWorkout: (Workout) -> Unit
+) {
     val navController = rememberNavController()
+    var pendingWorkout by remember { mutableStateOf<Workout?>(null) }
     
     NavHost(
         navController = navController,
@@ -120,10 +137,8 @@ fun GymmiApp() {
                     )
                 },
                 onSaveWorkout = { workout ->
-                    // TODO: Save workout to database
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                    }
+                    pendingWorkout = workout
+                    navController.navigate("workout_summary")
                 }
             )
         }
@@ -149,6 +164,24 @@ fun GymmiApp() {
                     navController.popBackStack()
                 }
             )
+        }
+
+        composable("workout_summary") {
+            pendingWorkout?.let { workout ->
+                WorkoutSummaryScreen(
+                    workout = workout,
+                    onConfirm = {
+                        onSaveWorkout(workout)
+                        pendingWorkout = null
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    },
+                    onEdit = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 } 
