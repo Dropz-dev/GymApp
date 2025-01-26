@@ -14,8 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
-import com.example.gymapp.ui.screens.ProgramListScreen
-import com.example.gymapp.ui.screens.WelcomeScreen
+import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -63,9 +62,24 @@ fun GymmiApp(sampleProgram: Program) {
         composable("welcome") {
             WelcomeScreen(
                 onStartClick = {
+                    navController.navigate("home")
+                }
+            )
+        }
+        
+        composable("home") {
+            HomeScreen(
+                onWeighInClick = {
+                    navController.navigate("weigh_in")
+                },
+                onTrainingClick = {
                     navController.navigate("program_list")
                 }
             )
+        }
+
+        composable("weigh_in") {
+            WeighInScreen()
         }
         
         composable("program_list") {
