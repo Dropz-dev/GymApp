@@ -1,17 +1,28 @@
 package com.example.gymapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+enum class WorkoutType {
+    PUSH, PULL, ARMS, LEGS;
+    
+    override fun toString(): String {
+        return name.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +33,9 @@ fun CreateWorkoutScreen(
     var exercises by remember { mutableStateOf(listOf<String>()) }
     var currentExercise by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedWorkoutType by remember { mutableStateOf<WorkoutType?>(null) }
+    var showWorkoutTypeMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -34,22 +48,98 @@ fun CreateWorkoutScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Workout name input
-        OutlinedTextField(
-            value = workoutName,
-            onValueChange = { workoutName = it },
-            label = { Text("Workout Name") },
+        // Workout type selection
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            singleLine = true
-        )
+                .padding(bottom = 16.dp)
+        ) {
+            OutlinedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showWorkoutTypeMenu = true }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(selectedWorkoutType?.toString() ?: "Select Workout Type")
+                    Icon(Icons.Default.KeyboardArrowDown, "Select Type")
+                }
+            }
+            
+            DropdownMenu(
+                expanded = showWorkoutTypeMenu,
+                onDismissRequest = { showWorkoutTypeMenu = false }
+            ) {
+                WorkoutType.values().forEach { type ->
+                    DropdownMenuItem(
+                        text = { Text(type.toString()) },
+                        onClick = {
+                            selectedWorkoutType = type
+                            workoutName = type.toString()
+                            showWorkoutTypeMenu = false
+                        }
+                    )
+                }
+            }
+        }
 
-        // Date selection (basic implementation - can be enhanced with a date picker)
-        Text(
-            text = "Date: ${selectedDate}",
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // Date selection with calendar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            OutlinedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Date: ${selectedDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))}")
+                    Icon(Icons.Default.KeyboardArrowDown, "Select Date")
+                }
+            }
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("OK")
+                    }
+                }
+            ) {
+                DatePicker(
+                    state = rememberDatePickerState(
+                        initialSelectedDateMillis = selectedDate
+                            .atStartOfDay()
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli()
+                    ),
+                    onSelectedDateChange = { millis ->
+                        millis?.let {
+                            selectedDate = java.time.Instant
+                                .ofEpochMilli(it)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                        }
+                    }
+                )
+            }
+        }
 
         // Exercise input
         Row(
@@ -119,7 +209,7 @@ fun CreateWorkoutScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            enabled = workoutName.isNotEmpty() && exercises.isNotEmpty()
+            enabled = selectedWorkoutType != null && exercises.isNotEmpty()
         ) {
             Text("Create Workout")
         }
