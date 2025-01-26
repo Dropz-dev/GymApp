@@ -12,14 +12,6 @@ import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-enum class WorkoutType {
-    PUSH, PULL, ARMS, LEGS;
-    
-    override fun toString(): String {
-        return name.lowercase().replaceFirstChar { it.uppercase() }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateWorkoutScreen(

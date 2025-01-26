@@ -79,6 +79,7 @@ fun WorkoutTrackingScreen(
             Button(
                 onClick = {
                     val workout = Workout(
+                        id = System.currentTimeMillis(),
                         type = workoutType,
                         date = date,
                         exercises = workoutExercises
