@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    GymmiApp(sampleProgram)
+                    GymmiApp()
                 }
             }
         }
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun GymmiApp(sampleProgram: Program) {
+fun GymmiApp() {
     val navController = rememberNavController()
     
     NavHost(
@@ -73,7 +73,7 @@ fun GymmiApp(sampleProgram: Program) {
                     navController.navigate("weigh_in")
                 },
                 onTrainingClick = {
-                    navController.navigate("program_list")
+                    navController.navigate("create_workout")
                 }
             )
         }
@@ -82,11 +82,13 @@ fun GymmiApp(sampleProgram: Program) {
             WeighInScreen()
         }
         
-        composable("program_list") {
-            ProgramListScreen(
-                programs = listOf(sampleProgram),
-                onProgramSelected = { programId, dayId ->
-                    // We'll implement navigation to training day screen later
+        composable("create_workout") {
+            CreateWorkoutScreen(
+                onWorkoutCreated = {
+                    // For now, just navigate back to home
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
                 }
             )
         }
