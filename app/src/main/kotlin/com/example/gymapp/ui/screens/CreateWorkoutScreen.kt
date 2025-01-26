@@ -113,31 +113,33 @@ fun CreateWorkoutScreen(
         }
 
         if (showDatePicker) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = selectedDate
+                    .atStartOfDay()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+            )
+            
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                selectedDate = java.time.Instant
+                                    .ofEpochMilli(millis)
+                                    .atZone(java.time.ZoneId.systemDefault())
+                                    .toLocalDate()
+                            }
+                            showDatePicker = false
+                        }
+                    ) {
                         Text("OK")
                     }
                 }
             ) {
-                DatePicker(
-                    state = rememberDatePickerState(
-                        initialSelectedDateMillis = selectedDate
-                            .atStartOfDay()
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .toInstant()
-                            .toEpochMilli()
-                    ),
-                    onSelectedDateChange = { millis ->
-                        millis?.let {
-                            selectedDate = java.time.Instant
-                                .ofEpochMilli(it)
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toLocalDate()
-                        }
-                    }
-                )
+                DatePicker(state = datePickerState)
             }
         }
 
