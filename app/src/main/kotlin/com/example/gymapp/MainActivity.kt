@@ -16,6 +16,8 @@ import androidx.navigation.navArgument
 import com.example.gymapp.data.model.Program
 import com.example.gymapp.data.model.TrainingDay
 import com.example.gymapp.data.model.ExerciseSet
+import com.example.gymapp.data.model.Exercise
+import com.example.gymapp.data.model.WorkoutExercise
 import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
 import java.time.LocalDate
@@ -88,10 +90,40 @@ fun GymmiApp() {
         composable("create_workout") {
             CreateWorkoutScreen(
                 onWorkoutCreated = { type, date ->
-                    // Navigate to exercise selection with workout type and date
                     navController.navigate(
-                        "select_exercises/${type.name}/${date}"
+                        "track_workout/${type.name}/${date}"
                     )
+                }
+            )
+        }
+
+        composable(
+            route = "track_workout/{workoutType}/{date}",
+            arguments = listOf(
+                navArgument("workoutType") { type = NavType.StringType },
+                navArgument("date") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val workoutType = WorkoutType.valueOf(
+                backStackEntry.arguments?.getString("workoutType") ?: WorkoutType.PUSH.name
+            )
+            val date = LocalDate.parse(
+                backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
+            )
+            
+            WorkoutTrackingScreen(
+                workoutType = workoutType,
+                date = date,
+                onAddExercises = {
+                    navController.navigate(
+                        "select_exercises/${workoutType.name}/${date}"
+                    )
+                },
+                onSaveWorkout = { workout ->
+                    // TODO: Save workout to database
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
                 }
             )
         }
@@ -114,10 +146,7 @@ fun GymmiApp() {
                 workoutType = workoutType,
                 date = date,
                 onSaveWorkout = {
-                    // Navigate back to home after saving
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
