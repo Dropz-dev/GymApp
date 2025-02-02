@@ -13,6 +13,60 @@ import androidx.compose.ui.unit.sp
 import com.example.gymapp.data.model.Workout
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WorkoutHistoryCard(
+    workout: Workout,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = workout.type.toString(),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = workout.date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Exercise summary
+            Text(
+                text = "${workout.exercises.size} exercises",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Total volume
+            val totalVolume = workout.exercises.sumOf { exercise ->
+                exercise.sets.sumOf { (it.weight * it.reps).toDouble() }
+            }.toFloat()
+
+            Text(
+                text = "Total Volume: %.1f kg".format(totalVolume),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
 @Composable
 fun HomeScreen(
     onWeighInClick: () -> Unit,
@@ -74,59 +128,6 @@ fun HomeScreen(
                 workout = workout,
                 onClick = { onWorkoutClick(workout) },
                 modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun WorkoutHistoryCard(
-    workout: Workout,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth(),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = workout.type.toString(),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = workout.date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Exercise summary
-            Text(
-                text = "${workout.exercises.size} exercises",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            // Total volume
-            val totalVolume = workout.exercises.sumOf { exercise ->
-                exercise.sets.sumOf { (it.weight * it.reps).toDouble() }
-            }.toFloat()
-
-            Text(
-                text = "Total Volume: %.1f kg".format(totalVolume),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
             )
         }
     }

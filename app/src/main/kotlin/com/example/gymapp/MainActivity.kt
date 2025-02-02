@@ -15,12 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gymapp.data.WorkoutDatabase
-import com.example.gymapp.data.model.Workout
-import com.example.gymapp.data.model.Program
-import com.example.gymapp.data.model.TrainingDay
-import com.example.gymapp.data.model.ExerciseSet
-import com.example.gymapp.data.model.Exercise
-import com.example.gymapp.data.model.WorkoutExercise
+import com.example.gymapp.data.model.*
 import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
 import java.time.LocalDate
@@ -87,7 +82,7 @@ fun GymmiApp(
                                             weight = set.weight,
                                             reps = set.reps
                                         )
-                                    }
+                                    }.toList()
                                 )
                             }
                         )
