@@ -2,20 +2,26 @@ package com.example.gymapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import com.example.gymapp.data.database.WorkoutDatabase
+import com.example.gymapp.data.CustomExerciseEntity
 import com.example.gymapp.data.model.Exercise
 import com.example.gymapp.data.model.ExerciseList
 import com.example.gymapp.data.model.ExerciseCategory
 import com.example.gymapp.data.model.WorkoutExercise
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.example.gymapp.data.database.WorkoutDatabase
-import com.example.gymapp.data.entity.CustomExerciseEntity
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 
 @Composable
@@ -157,6 +163,7 @@ fun ExerciseSelectionScreen(
     }
 
     if (showAddExerciseDialog) {
+        val coroutineScope = rememberCoroutineScope()
         AddExerciseDialog(
             onDismiss = { showAddExerciseDialog = false },
             onExerciseAdded = { name, category ->
@@ -164,7 +171,7 @@ fun ExerciseSelectionScreen(
                     name = name,
                     category = category.name
                 )
-                lifecycleScope.launch {
+                coroutineScope.launch {
                     database.customExerciseDao().insertCustomExercise(exercise)
                 }
                 showAddExerciseDialog = false
@@ -239,7 +246,7 @@ private fun AddExerciseDialog(
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(ExerciseCategory.values()) { category ->
+                    items(ExerciseCategory.values().toList()) { category ->
                         FilterChip(
                             selected = selectedCategory == category,
                             onClick = { selectedCategory = category },

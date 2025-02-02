@@ -217,6 +217,7 @@ fun GymmiApp(
                 workoutType = workoutType,
                 date = date,
                 initialExercises = currentExercises,
+                database = database,
                 onSaveWorkout = { selectedExercises ->
                     navController.previousBackStackEntry
                         ?.savedStateHandle
