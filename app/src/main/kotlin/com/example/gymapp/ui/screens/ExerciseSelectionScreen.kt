@@ -19,11 +19,15 @@ import java.time.format.DateTimeFormatter
 fun ExerciseSelectionScreen(
     workoutType: WorkoutType,
     date: LocalDate,
-    onSaveWorkout: (List<WorkoutExercise>) -> Unit
+    onSaveWorkout: (List<WorkoutExercise>) -> Unit,
+    initialExercises: List<WorkoutExercise> = emptyList()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
-    var selectedExercises by remember { mutableStateOf(setOf<Exercise>()) }
+    
+    var selectedExercises by remember { 
+        mutableStateOf(initialExercises.map { it.exercise }.toSet())
+    }
 
     Column(
         modifier = Modifier
@@ -102,8 +106,9 @@ fun ExerciseSelectionScreen(
 
         Button(
             onClick = {
+                val existingExercisesMap = initialExercises.associateBy { it.exercise }
                 val workoutExercises = selectedExercises.map { exercise ->
-                    WorkoutExercise(exercise = exercise, sets = emptyList())
+                    existingExercisesMap[exercise] ?: WorkoutExercise(exercise = exercise, sets = emptyList())
                 }
                 onSaveWorkout(workoutExercises)
             },
