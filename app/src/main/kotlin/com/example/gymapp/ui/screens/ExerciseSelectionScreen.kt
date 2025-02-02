@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.example.gymapp.data.database.WorkoutDatabase
+import com.example.gymapp.data.WorkoutDatabase
 import com.example.gymapp.data.CustomExerciseEntity
 import com.example.gymapp.data.model.Exercise
 import com.example.gymapp.data.model.ExerciseList
@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseSelectionScreen(
     workoutType: WorkoutType,
@@ -43,7 +44,7 @@ fun ExerciseSelectionScreen(
     // Collect custom exercises
     val customExercises by database.customExerciseDao()
         .getAllCustomExercises()
-        .collectAsState(initial = emptyList())
+        .collectAsState<List<CustomExerciseEntity>>(initial = emptyList())
 
     // Update ExerciseList with custom exercises
     LaunchedEffect(customExercises) {
