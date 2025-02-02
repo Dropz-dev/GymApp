@@ -43,9 +43,9 @@ fun ExerciseSelectionScreen(
     }
 
     // Collect custom exercises
-    val customExercises by database.customExerciseDao()
-        .getAllCustomExercises()
-        .collectAsState(initial = emptyList(), context = LocalContext.current)
+    val customExercises by remember(database) {
+        database.customExerciseDao().getAllCustomExercises()
+    }.collectAsState(initial = emptyList())
 
     // Update ExerciseList with custom exercises
     LaunchedEffect(customExercises) {
