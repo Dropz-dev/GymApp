@@ -28,28 +28,10 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var database: WorkoutDatabase
-    private var currentWorkout: Workout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         database = WorkoutDatabase.getDatabase(this)
-        
-        // Sample program data
-        val sampleProgram = Program(
-            id = 1L,
-            name = "Push/Pull/Legs",
-            trainingDays = listOf(
-                TrainingDay(
-                    id = 1L,
-                    name = "Push Day",
-                    exercises = listOf(
-                        ExerciseSet(1L, "Bench Press", 100.5f, 8),
-                        ExerciseSet(2L, "Shoulder Press", 60.0f, 10),
-                        ExerciseSet(3L, "Triceps Extension", 25.0f, 12)
-                    )
-                )
-            )
-        )
         
         setContent {
             GymAppTheme {
@@ -58,6 +40,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     GymmiApp(
+                        database = database,
                         onSaveWorkout = { workout ->
                             lifecycleScope.launch {
                                 database.workoutDao().insertFullWorkout(workout)
@@ -72,10 +55,46 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun GymmiApp(
+    database: WorkoutDatabase,
     onSaveWorkout: (Workout) -> Unit
 ) {
     val navController = rememberNavController()
     var pendingWorkout by remember { mutableStateOf<Workout?>(null) }
+    
+    // Collect workouts from the database
+    val workouts by database.workoutDao()
+        .getAllWorkouts()
+        .collectAsState(initial = emptyList())
+        .let { state ->
+            // Convert database entities to domain model
+            remember(state.value) {
+                derivedStateOf {
+                    state.value.map { workoutWithExercises ->
+                        Workout(
+                            id = workoutWithExercises.workout.id,
+                            type = WorkoutType.valueOf(workoutWithExercises.workout.type),
+                            date = workoutWithExercises.workout.date,
+                            exercises = workoutWithExercises.exercises.map { exerciseWithSets ->
+                                WorkoutExercise(
+                                    exercise = Exercise(
+                                        id = exerciseWithSets.exercise.exerciseId,
+                                        name = exerciseWithSets.exercise.exerciseName,
+                                        category = ExerciseCategory.valueOf(exerciseWithSets.exercise.exerciseCategory)
+                                    ),
+                                    sets = exerciseWithSets.sets.map { set ->
+                                        WorkoutSet(
+                                            setNumber = set.setNumber,
+                                            weight = set.weight,
+                                            reps = set.reps
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
     
     NavHost(
         navController = navController,
@@ -96,6 +115,32 @@ fun GymmiApp(
                 },
                 onTrainingClick = {
                     navController.navigate("create_workout")
+                },
+                onWorkoutClick = { workout ->
+                    // Navigate to workout details screen
+                    navController.navigate("workout_details/${workout.id}")
+                },
+                recentWorkouts = workouts.sortedByDescending { it.date }
+            )
+        }
+
+        // Add workout details screen
+        composable(
+            route = "workout_details/{workoutId}",
+            arguments = listOf(
+                navArgument("workoutId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: return@composable
+            val workout = workouts.find { it.id == workoutId } ?: return@composable
+            
+            WorkoutSummaryScreen(
+                workout = workout,
+                onConfirm = {
+                    navController.popBackStack()
+                },
+                onEdit = {
+                    navController.popBackStack()
                 }
             )
         }
