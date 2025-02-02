@@ -3,7 +3,8 @@ package com.example.gymapp.data.model
 data class Exercise(
     val id: Long,
     val name: String,
-    val category: ExerciseCategory
+    val category: ExerciseCategory,
+    val isCustom: Boolean = false
 )
 
 enum class ExerciseCategory {
@@ -12,11 +13,17 @@ enum class ExerciseCategory {
     TRICEPS,
     BACK,
     BICEPS,
-    LEGS
+    LEGS;
+
+    companion object {
+        fun fromString(value: String): ExerciseCategory {
+            return valueOf(value.uppercase())
+        }
+    }
 }
 
 object ExerciseList {
-    val exercises = listOf(
+    private val predefinedExercises = listOf(
         // Chest Exercises
         Exercise(1, "Bench Press", ExerciseCategory.CHEST),
         Exercise(2, "Incline Bench Press", ExerciseCategory.CHEST),
@@ -71,4 +78,21 @@ object ExerciseList {
         Exercise(41, "Lunges", ExerciseCategory.LEGS),
         Exercise(42, "Bulgarian Split Squats", ExerciseCategory.LEGS)
     )
+
+    private var customExercises = mutableListOf<Exercise>()
+
+    val exercises: List<Exercise>
+        get() = predefinedExercises + customExercises
+
+    fun addCustomExercise(exercise: Exercise) {
+        customExercises.add(exercise)
+    }
+
+    fun removeCustomExercise(exercise: Exercise) {
+        customExercises.remove(exercise)
+    }
+
+    fun updateCustomExercises(exercises: List<Exercise>) {
+        customExercises = exercises.toMutableList()
+    }
 } 

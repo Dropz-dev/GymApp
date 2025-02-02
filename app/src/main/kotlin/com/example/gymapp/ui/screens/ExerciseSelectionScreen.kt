@@ -14,19 +14,43 @@ import com.example.gymapp.data.model.ExerciseCategory
 import com.example.gymapp.data.model.WorkoutExercise
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import com.example.gymapp.data.database.WorkoutDatabase
+import com.example.gymapp.data.entity.CustomExerciseEntity
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExerciseSelectionScreen(
     workoutType: WorkoutType,
     date: LocalDate,
     onSaveWorkout: (List<WorkoutExercise>) -> Unit,
-    initialExercises: List<WorkoutExercise> = emptyList()
+    initialExercises: List<WorkoutExercise> = emptyList(),
+    database: WorkoutDatabase
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
+    var showAddExerciseDialog by remember { mutableStateOf(false) }
     
     var selectedExercises by remember { 
         mutableStateOf(initialExercises.map { it.exercise }.toSet())
+    }
+
+    // Collect custom exercises
+    val customExercises by database.customExerciseDao()
+        .getAllCustomExercises()
+        .collectAsState(initial = emptyList())
+
+    // Update ExerciseList with custom exercises
+    LaunchedEffect(customExercises) {
+        ExerciseList.updateCustomExercises(
+            customExercises.map { entity ->
+                Exercise(
+                    id = entity.id,
+                    name = entity.name,
+                    category = ExerciseCategory.fromString(entity.category),
+                    isCustom = true
+                )
+            }
+        )
     }
 
     Column(
@@ -34,11 +58,22 @@ fun ExerciseSelectionScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Select Exercises",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Select Exercises",
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            
+            IconButton(onClick = { showAddExerciseDialog = true }) {
+                Icon(Icons.Default.Add, "Add Exercise")
+            }
+        }
 
         Text(
             text = "${workoutType.toString()} - ${date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))}",
@@ -120,6 +155,22 @@ fun ExerciseSelectionScreen(
             Text("Add Selected Exercises")
         }
     }
+
+    if (showAddExerciseDialog) {
+        AddExerciseDialog(
+            onDismiss = { showAddExerciseDialog = false },
+            onExerciseAdded = { name, category ->
+                val exercise = CustomExerciseEntity(
+                    name = name,
+                    category = category.name
+                )
+                lifecycleScope.launch {
+                    database.customExerciseDao().insertCustomExercise(exercise)
+                }
+                showAddExerciseDialog = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -155,4 +206,65 @@ private fun ExerciseItem(
             )
         }
     }
+}
+
+@Composable
+private fun AddExerciseDialog(
+    onDismiss: () -> Unit,
+    onExerciseAdded: (String, ExerciseCategory) -> Unit
+) {
+    var exerciseName by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Custom Exercise") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = exerciseName,
+                    onValueChange = { exerciseName = it },
+                    label = { Text("Exercise Name") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+
+                Text(
+                    text = "Category",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(ExerciseCategory.values()) { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = { Text(category.name) }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    selectedCategory?.let { category ->
+                        onExerciseAdded(exerciseName, category)
+                    }
+                },
+                enabled = exerciseName.isNotBlank() && selectedCategory != null
+            ) {
+                Text("Add Exercise")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 } 

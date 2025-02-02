@@ -33,6 +33,13 @@ data class WorkoutSetEntity(
     val reps: Int
 )
 
+@Entity(tableName = "custom_exercises")
+data class CustomExerciseEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val category: String
+)
+
 data class WorkoutWithExercises(
     @Embedded val workout: WorkoutEntity,
     @Relation(
@@ -106,17 +113,31 @@ interface WorkoutDao {
     }
 }
 
+@Dao
+interface CustomExerciseDao {
+    @Query("SELECT * FROM custom_exercises")
+    fun getAllCustomExercises(): Flow<List<CustomExerciseEntity>>
+
+    @Insert
+    suspend fun insertCustomExercise(exercise: CustomExerciseEntity): Long
+
+    @Delete
+    suspend fun deleteCustomExercise(exercise: CustomExerciseEntity)
+}
+
 @Database(
     entities = [
         WorkoutEntity::class,
         WorkoutExerciseEntity::class,
-        WorkoutSetEntity::class
+        WorkoutSetEntity::class,
+        CustomExerciseEntity::class
     ],
     version = 1
 )
 @TypeConverters(Converters::class)
 abstract class WorkoutDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
+    abstract fun customExerciseDao(): CustomExerciseDao
 
     companion object {
         @Volatile
