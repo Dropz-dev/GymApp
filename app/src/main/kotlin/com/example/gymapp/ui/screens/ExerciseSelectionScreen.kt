@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +45,7 @@ fun ExerciseSelectionScreen(
     // Collect custom exercises
     val customExercises by database.customExerciseDao()
         .getAllCustomExercises()
-        .collectAsState<List<CustomExerciseEntity>>(initial = emptyList())
+        .collectAsState(initial = emptyList(), context = LocalContext.current)
 
     // Update ExerciseList with custom exercises
     LaunchedEffect(customExercises) {
@@ -216,6 +217,7 @@ private fun ExerciseItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddExerciseDialog(
     onDismiss: () -> Unit,
