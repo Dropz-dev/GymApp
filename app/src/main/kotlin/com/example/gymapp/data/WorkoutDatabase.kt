@@ -82,34 +82,56 @@ interface WorkoutDao {
 
     @Transaction
     suspend fun insertFullWorkout(workout: Workout) {
-        // Delete existing data if this is an update
+        // For updates, we want to keep existing exercises and their sets
         if (workout.id != 0L) {
-            deleteWorkoutSets(workout.id)
-            deleteWorkoutExercises(workout.id)
+            // Update the workout entity
+            insertWorkout(
+                WorkoutEntity(
+                    id = workout.id,
+                    type = workout.type.name,
+                    date = workout.date
+                )
+            )
+
+            // Get existing exercise IDs to avoid duplicates
+            val existingExerciseIds = workout.exercises
+                .map { it.exercise.id }
+                .toSet()
+
+            // Delete only removed exercises and their sets
+            deleteWorkoutExercisesNotIn(workout.id, existingExerciseIds)
+        } else {
+            // For new workouts, just insert everything
+            insertWorkout(
+                WorkoutEntity(
+                    id = workout.id,
+                    type = workout.type.name,
+                    date = workout.date
+                )
+            )
         }
 
-        val workoutId = insertWorkout(
-            WorkoutEntity(
-                id = workout.id,
-                type = workout.type.name,
-                date = workout.date
-            )
-        )
-
+        // Insert or update exercises and their sets
         workout.exercises.forEach { exercise ->
             val exerciseId = insertWorkoutExercise(
                 WorkoutExerciseEntity(
-                    workoutId = workoutId,
+                    workoutId = workout.id,
                     exerciseId = exercise.exercise.id,
                     exerciseName = exercise.exercise.name,
                     exerciseCategory = exercise.exercise.category.name
                 )
             )
 
+            // Delete existing sets for this exercise if it's being updated
+            if (workout.id != 0L) {
+                deleteWorkoutSetsForExercise(workout.id, exerciseId)
+            }
+
+            // Insert new sets
             exercise.sets.forEach { set ->
                 insertWorkoutSet(
                     WorkoutSetEntity(
-                        workoutId = workoutId,
+                        workoutId = workout.id,
                         exerciseId = exerciseId,
                         setNumber = set.setNumber,
                         weight = set.weight,
@@ -119,6 +141,12 @@ interface WorkoutDao {
             }
         }
     }
+
+    @Query("DELETE FROM workout_exercises WHERE workoutId = :workoutId AND exerciseId NOT IN (:exerciseIds)")
+    suspend fun deleteWorkoutExercisesNotIn(workoutId: Long, exerciseIds: Set<Long>)
+
+    @Query("DELETE FROM workout_sets WHERE workoutId = :workoutId AND exerciseId = :exerciseId")
+    suspend fun deleteWorkoutSetsForExercise(workoutId: Long, exerciseId: Long)
 }
 
 @Dao

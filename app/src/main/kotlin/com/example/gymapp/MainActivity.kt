@@ -191,19 +191,40 @@ fun GymmiApp(
             )
             val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: -1L
 
-            val selectedExercises = navController
+            // Get existing exercises from the workout being edited
+            val existingWorkout = if (workoutId != -1L) {
+                workouts.find { it.id == workoutId }
+            } else null
+
+            // Get newly selected exercises, if any
+            val newlySelectedExercises = navController
                 .currentBackStackEntry
                 ?.savedStateHandle
                 ?.get<List<WorkoutExercise>>("selected_exercises") ?: emptyList()
+
+            // Combine existing and newly selected exercises
+            val combinedExercises = if (existingWorkout != null) {
+                // Create a map of existing exercises by their ID for quick lookup
+                val existingExerciseMap = existingWorkout.exercises.associateBy { it.exercise.id }
+                
+                // Merge lists, keeping existing exercises' sets if they exist
+                (existingWorkout.exercises + newlySelectedExercises)
+                    .distinctBy { it.exercise.id }
+                    .map { exercise ->
+                        existingExerciseMap[exercise.exercise.id] ?: exercise
+                    }
+            } else {
+                newlySelectedExercises
+            }
             
             WorkoutTrackingScreen(
                 workoutType = workoutType,
                 date = date,
-                initialExercises = selectedExercises,
+                initialExercises = combinedExercises,
                 onAddExercises = {
                     navController.currentBackStackEntry
                         ?.savedStateHandle
-                        ?.set("current_exercises", selectedExercises)
+                        ?.set("current_exercises", combinedExercises)
                     navController.navigate(
                         "select_exercises/${workoutType.name}/${date}"
                     )
