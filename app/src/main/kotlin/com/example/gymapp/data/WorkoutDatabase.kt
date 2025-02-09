@@ -93,51 +93,82 @@ interface WorkoutDao {
                 )
             )
 
-            // Get existing exercise IDs to avoid duplicates
-            val existingExerciseIds = workout.exercises
-                .map { it.exercise.id }
-                .toSet()
+            // Get map of existing exercises
+            val existingExercises = workout.exercises.associateBy { 
+                "${it.exercise.id}_${workout.id}" 
+            }
 
-            // Delete only removed exercises and their sets
-            deleteWorkoutExercisesNotIn(workout.id, existingExerciseIds)
+            // Delete exercises that are no longer present
+            deleteWorkoutExercisesNotIn(
+                workout.id,
+                workout.exercises.map { it.exercise.id }.toSet()
+            )
+
+            // Update or insert exercises and their sets
+            workout.exercises.forEach { exercise ->
+                val exerciseKey = "${exercise.exercise.id}_${workout.id}"
+                
+                // Insert or update the exercise
+                val exerciseId = insertWorkoutExercise(
+                    WorkoutExerciseEntity(
+                        workoutId = workout.id,
+                        exerciseId = exercise.exercise.id,
+                        exerciseName = exercise.exercise.name,
+                        exerciseCategory = exercise.exercise.category.name
+                    )
+                )
+
+                // Only update sets if they've changed
+                if (!existingExercises.containsKey(exerciseKey) || 
+                    existingExercises[exerciseKey]?.sets != exercise.sets) {
+                    // Delete existing sets for this exercise
+                    deleteWorkoutSetsForExercise(workout.id, exerciseId)
+
+                    // Insert new sets
+                    exercise.sets.forEach { set ->
+                        insertWorkoutSet(
+                            WorkoutSetEntity(
+                                workoutId = workout.id,
+                                exerciseId = exerciseId,
+                                setNumber = set.setNumber,
+                                weight = set.weight,
+                                reps = set.reps
+                            )
+                        )
+                    }
+                }
+            }
         } else {
             // For new workouts, just insert everything
-            insertWorkout(
+            val workoutId = insertWorkout(
                 WorkoutEntity(
                     id = workout.id,
                     type = workout.type.name,
                     date = workout.date
                 )
             )
-        }
 
-        // Insert or update exercises and their sets
-        workout.exercises.forEach { exercise ->
-            val exerciseId = insertWorkoutExercise(
-                WorkoutExerciseEntity(
-                    workoutId = workout.id,
-                    exerciseId = exercise.exercise.id,
-                    exerciseName = exercise.exercise.name,
-                    exerciseCategory = exercise.exercise.category.name
-                )
-            )
-
-            // Delete existing sets for this exercise if it's being updated
-            if (workout.id != 0L) {
-                deleteWorkoutSetsForExercise(workout.id, exerciseId)
-            }
-
-            // Insert new sets
-            exercise.sets.forEach { set ->
-                insertWorkoutSet(
-                    WorkoutSetEntity(
-                        workoutId = workout.id,
-                        exerciseId = exerciseId,
-                        setNumber = set.setNumber,
-                        weight = set.weight,
-                        reps = set.reps
+            workout.exercises.forEach { exercise ->
+                val exerciseId = insertWorkoutExercise(
+                    WorkoutExerciseEntity(
+                        workoutId = workoutId,
+                        exerciseId = exercise.exercise.id,
+                        exerciseName = exercise.exercise.name,
+                        exerciseCategory = exercise.exercise.category.name
                     )
                 )
+
+                exercise.sets.forEach { set ->
+                    insertWorkoutSet(
+                        WorkoutSetEntity(
+                            workoutId = workoutId,
+                            exerciseId = exerciseId,
+                            setNumber = set.setNumber,
+                            weight = set.weight,
+                            reps = set.reps
+                        )
+                    )
+                }
             }
         }
     }

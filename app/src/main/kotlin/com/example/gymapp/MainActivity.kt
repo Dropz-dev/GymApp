@@ -204,15 +204,18 @@ fun GymmiApp(
 
             // Combine existing and newly selected exercises
             val combinedExercises = if (existingWorkout != null) {
-                // Create a map of existing exercises by their ID for quick lookup
+                // Create a map of existing exercises by their ID
                 val existingExerciseMap = existingWorkout.exercises.associateBy { it.exercise.id }
+                val newExerciseMap = newlySelectedExercises.associateBy { it.exercise.id }
                 
-                // Merge lists, keeping existing exercises' sets if they exist
-                (existingWorkout.exercises + newlySelectedExercises)
-                    .distinctBy { it.exercise.id }
-                    .map { exercise ->
-                        existingExerciseMap[exercise.exercise.id] ?: exercise
+                // Keep existing exercises and only add new ones
+                val mergedExercises = existingExerciseMap.toMutableMap()
+                newExerciseMap.forEach { (id, exercise) ->
+                    if (!mergedExercises.containsKey(id)) {
+                        mergedExercises[id] = exercise
                     }
+                }
+                mergedExercises.values.toList()
             } else {
                 newlySelectedExercises
             }
@@ -231,7 +234,15 @@ fun GymmiApp(
                 },
                 onSaveWorkout = { workout ->
                     val finalWorkout = if (workoutId != -1L) {
-                        workout.copy(id = workoutId)  // Use existing ID for updates
+                        // For updates, ensure we keep existing exercise data
+                        val existingExerciseMap = existingWorkout?.exercises?.associateBy { it.exercise.id } ?: emptyMap()
+                        val updatedExercises = workout.exercises.map { exercise ->
+                            existingExerciseMap[exercise.exercise.id] ?: exercise
+                        }
+                        workout.copy(
+                            id = workoutId,
+                            exercises = updatedExercises
+                        )
                     } else {
                         workout  // New workout keeps its generated ID
                     }
