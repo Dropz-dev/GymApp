@@ -93,7 +93,3 @@ dependencies {
     // Charts for progress visualization
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
-
-repositories {
-    maven { url = uri("https://jitpack.io") }
-}
