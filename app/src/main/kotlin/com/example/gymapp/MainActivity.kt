@@ -20,12 +20,21 @@ import com.example.gymapp.ui.screens.*
 import com.example.gymapp.ui.theme.GymAppTheme
 import java.time.LocalDate
 import kotlinx.coroutines.launch
+import android.content.pm.ActivityInfo
+import android.view.WindowManager
 
 class MainActivity : ComponentActivity() {
     private lateinit var database: WorkoutDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Keep screen on during workout
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        
+        // Lock orientation to portrait
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        
         database = WorkoutDatabase.getDatabase(this)
         
         setContent {
@@ -135,7 +144,16 @@ fun GymmiApp(
                     navController.popBackStack()
                 },
                 onEdit = {
-                    navController.popBackStack()
+                    // Navigate to tracking screen with existing workout data
+                    navController.navigate(
+                        "track_workout/${workout.type.name}/${workout.date}"
+                    ) {
+                        // Save the exercises to be edited
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "selected_exercises",
+                            workout.exercises
+                        )
+                    }
                 }
             )
         }
