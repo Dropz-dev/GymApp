@@ -16,13 +16,16 @@ import com.example.gymapp.data.model.Exercise
 import java.time.format.DateTimeFormatter
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressDashboardScreen(
     workouts: List<Workout>,
     onNavigateBack: () -> Unit
 ) {
     var selectedExercise by remember { mutableStateOf<Exercise?>(null) }
+    var expanded by remember { mutableStateOf(false) }
     val exercises = remember(workouts) {
         workouts.flatMap { it.exercises.map { it.exercise } }.distinct()
     }
@@ -40,27 +43,30 @@ fun ProgressDashboardScreen(
 
         // Exercise selector
         ExposedDropdownMenuBox(
-            expanded = false,
-            onExpandedChange = { },
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
         ) {
             TextField(
                 value = selectedExercise?.name ?: "Select Exercise",
                 onValueChange = { },
                 readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth()
             )
 
             ExposedDropdownMenu(
-                expanded = false,
-                onDismissRequest = { },
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
             ) {
                 exercises.forEach { exercise ->
                     DropdownMenuItem(
                         text = { Text(exercise.name) },
-                        onClick = { selectedExercise = exercise }
+                        onClick = { 
+                            selectedExercise = exercise
+                            expanded = false
+                        }
                     )
                 }
             }

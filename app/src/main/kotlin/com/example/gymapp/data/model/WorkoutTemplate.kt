@@ -1,5 +1,7 @@
 package com.example.gymapp.data.model
 
+import com.example.gymapp.ui.screens.WorkoutType
+
 data class WorkoutTemplate(
     val id: Long,
     val name: String,
@@ -36,6 +38,16 @@ enum class ProgramDifficulty {
 }
 
 object PresetPrograms {
+    private val benchPress = Exercise(1L, "Bench Press", ExerciseCategory.CHEST)
+    private val militaryPress = Exercise(8L, "Military Press", ExerciseCategory.SHOULDERS)
+    private val tricepPushdown = Exercise(15L, "Tricep Pushdown", ExerciseCategory.TRICEPS)
+    private val latPulldown = Exercise(22L, "Lat Pulldown", ExerciseCategory.BACK)
+    private val dumbbellRows = Exercise(24L, "Dumbbell Rows", ExerciseCategory.BACK)
+    private val dumbbellCurls = Exercise(29L, "Dumbbell Curls", ExerciseCategory.BICEPS)
+    private val squats = Exercise(35L, "Squats", ExerciseCategory.LEGS)
+    private val romanianDeadlift = Exercise(37L, "Romanian Deadlift", ExerciseCategory.LEGS)
+    private val calfRaises = Exercise(40L, "Calf Raises", ExerciseCategory.LEGS)
+
     val programs = listOf(
         WorkoutProgram(
             id = 1,
@@ -53,18 +65,18 @@ object PresetPrograms {
                     description = "Focus on chest, shoulders, and triceps",
                     exercises = listOf(
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 1L }!!, // Bench Press
+                            exercise = benchPress,
                             targetSets = 3,
                             targetRepsPerSet = 8..12,
                             notes = "Focus on form and controlled movement"
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 8L }!!, // Military Press
+                            exercise = militaryPress,
                             targetSets = 3,
                             targetRepsPerSet = 8..12
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 15L }!!, // Tricep Pushdown
+                            exercise = tricepPushdown,
                             targetSets = 3,
                             targetRepsPerSet = 10..15
                         )
@@ -78,17 +90,17 @@ object PresetPrograms {
                     description = "Focus on back and biceps",
                     exercises = listOf(
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 22L }!!, // Lat Pulldown
+                            exercise = latPulldown,
                             targetSets = 3,
                             targetRepsPerSet = 8..12
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 24L }!!, // Dumbbell Rows
+                            exercise = dumbbellRows,
                             targetSets = 3,
                             targetRepsPerSet = 8..12
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 29L }!!, // Dumbbell Curls
+                            exercise = dumbbellCurls,
                             targetSets = 3,
                             targetRepsPerSet = 10..15
                         )
@@ -102,25 +114,24 @@ object PresetPrograms {
                     description = "Full lower body workout",
                     exercises = listOf(
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 35L }!!, // Squats
+                            exercise = squats,
                             targetSets = 3,
                             targetRepsPerSet = 8..12,
                             notes = "Focus on depth and knee alignment"
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 37L }!!, // Romanian Deadlift
+                            exercise = romanianDeadlift,
                             targetSets = 3,
                             targetRepsPerSet = 8..12
                         ),
                         TemplateExercise(
-                            exercise = ExerciseList.exercises.find { it.id == 40L }!!, // Calf Raises
+                            exercise = calfRaises,
                             targetSets = 3,
                             targetRepsPerSet = 12..15
                         )
                     )
                 )
             )
-        ),
-        // Add more preset programs here
+        )
     )
 } 

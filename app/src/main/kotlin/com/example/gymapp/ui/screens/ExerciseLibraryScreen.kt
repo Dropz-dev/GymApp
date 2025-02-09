@@ -9,15 +9,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import com.example.gymapp.data.model.Exercise
-import com.example.gymapp.data.model.ExerciseCategory
 import com.example.gymapp.data.model.ExerciseDetails
+import androidx.compose.foundation.clickable
+import com.example.gymapp.data.model.ExerciseList
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseLibraryScreen(
     onNavigateBack: () -> Unit
 ) {
-    var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<ExerciseCategory?>(null) }
     var selectedExercise by remember { mutableStateOf<Exercise?>(null) }
 
     Column(
@@ -77,7 +79,7 @@ fun ExerciseLibraryScreen(
                 ExerciseDetailCard(
                     exercise = exercise,
                     isExpanded = selectedExercise == exercise,
-                    onClick = {
+                    onClick = { 
                         selectedExercise = if (selectedExercise == exercise) null else exercise
                     }
                 )
@@ -93,87 +95,40 @@ fun ExerciseDetailCard(
     isExpanded: Boolean,
     onClick: () -> Unit
 ) {
-    val exerciseDetails = ExerciseDetails.getDetails(exercise.id)
-
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = exercise.name,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = exercise.category.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (isExpanded && exerciseDetails != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Primary muscles
-                Text(
-                    text = "Primary Muscles:",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(exerciseDetails.primaryMuscles.joinToString(", "))
-                
+            Text(
+                text = exercise.name,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = exercise.category,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            
+            if (isExpanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // Secondary muscles
-                Text(
-                    text = "Secondary Muscles:",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(exerciseDetails.secondaryMuscles.joinToString(", "))
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Instructions
-                Text(
-                    text = "Instructions:",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                exerciseDetails.instructions.forEach { instruction ->
-                    Text("• $instruction")
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Tips
-                Text(
-                    text = "Tips:",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                exerciseDetails.tips.forEach { tip ->
-                    Text("• $tip")
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Common mistakes
-                Text(
-                    text = "Common Mistakes to Avoid:",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                exerciseDetails.commonMistakes.forEach { mistake ->
-                    Text("• $mistake")
+                val details = ExerciseDetails.getDetails(exercise.id)
+                details?.let {
+                    Text("Primary Muscles: ${it.primaryMuscles.joinToString(", ")}")
+                    Text("Secondary Muscles: ${it.secondaryMuscles.joinToString(", ")}")
+                    Text("Instructions:", style = MaterialTheme.typography.titleMedium)
+                    it.instructions.forEach { instruction ->
+                        Text("• $instruction")
+                    }
+                    if (it.tips.isNotEmpty()) {
+                        Text("Tips:", style = MaterialTheme.typography.titleMedium)
+                        it.tips.forEach { tip ->
+                            Text("• $tip")
+                        }
+                    }
                 }
             }
         }
