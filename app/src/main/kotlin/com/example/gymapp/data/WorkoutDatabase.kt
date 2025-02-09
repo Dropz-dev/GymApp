@@ -65,11 +65,13 @@ interface WorkoutDao {
     @Query("SELECT * FROM workouts ORDER BY date DESC")
     fun getAllWorkouts(): Flow<List<WorkoutWithExercises>>
 
-    @Transaction
-    @Query("SELECT * FROM workouts WHERE type = :type ORDER BY date DESC LIMIT 1")
-    suspend fun getLastWorkoutByType(type: String): WorkoutWithExercises?
+    @Query("DELETE FROM workout_sets WHERE workoutId = :workoutId")
+    suspend fun deleteWorkoutSets(workoutId: Long)
 
-    @Insert
+    @Query("DELETE FROM workout_exercises WHERE workoutId = :workoutId")
+    suspend fun deleteWorkoutExercises(workoutId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkout(workout: WorkoutEntity): Long
 
     @Insert
@@ -80,6 +82,12 @@ interface WorkoutDao {
 
     @Transaction
     suspend fun insertFullWorkout(workout: Workout) {
+        // Delete existing data if this is an update
+        if (workout.id != 0L) {
+            deleteWorkoutSets(workout.id)
+            deleteWorkoutExercises(workout.id)
+        }
+
         val workoutId = insertWorkout(
             WorkoutEntity(
                 id = workout.id,

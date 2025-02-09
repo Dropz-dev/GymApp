@@ -146,7 +146,7 @@ fun GymmiApp(
                 onEdit = {
                     // Navigate to tracking screen with existing workout data
                     navController.navigate(
-                        "track_workout/${workout.type.name}/${workout.date}"
+                        "track_workout/${workout.type.name}/${workout.date}?workoutId=${workout.id}"
                     ) {
                         // Save the exercises to be edited
                         navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -173,10 +173,14 @@ fun GymmiApp(
         }
 
         composable(
-            route = "track_workout/{workoutType}/{date}",
+            route = "track_workout/{workoutType}/{date}?workoutId={workoutId}",
             arguments = listOf(
                 navArgument("workoutType") { type = NavType.StringType },
-                navArgument("date") { type = NavType.StringType }
+                navArgument("date") { type = NavType.StringType },
+                navArgument("workoutId") { 
+                    type = NavType.LongType
+                    defaultValue = -1L 
+                }
             )
         ) { backStackEntry ->
             val workoutType = WorkoutType.valueOf(
@@ -185,6 +189,7 @@ fun GymmiApp(
             val date = LocalDate.parse(
                 backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
             )
+            val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: -1L
 
             val selectedExercises = navController
                 .currentBackStackEntry
@@ -204,7 +209,12 @@ fun GymmiApp(
                     )
                 },
                 onSaveWorkout = { workout ->
-                    onSaveWorkout(workout)
+                    val finalWorkout = if (workoutId != -1L) {
+                        workout.copy(id = workoutId)  // Use existing ID for updates
+                    } else {
+                        workout  // New workout keeps its generated ID
+                    }
+                    onSaveWorkout(finalWorkout)
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }
