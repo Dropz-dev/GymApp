@@ -22,6 +22,10 @@ import java.time.LocalDate
 import kotlinx.coroutines.launch
 import android.content.pm.ActivityInfo
 import android.view.WindowManager
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var database: WorkoutDatabase
@@ -64,6 +68,7 @@ fun GymmiApp(
 ) {
     val navController = rememberNavController()
     var pendingWorkout by remember { mutableStateOf<Workout?>(null) }
+    val coroutineScope = rememberCoroutineScope()
     
     // Collect workouts from the database
     val workouts by database.workoutDao()
@@ -121,11 +126,10 @@ fun GymmiApp(
                     navController.navigate("create_workout")
                 },
                 onWorkoutClick = { workout ->
-                    // Navigate to workout details screen
                     navController.navigate("workout_details/${workout.id}")
                 },
                 onDeleteWorkout = { workout ->
-                    lifecycleScope.launch {
+                    coroutineScope.launch {
                         database.workoutDao().deleteFullWorkout(workout.id)
                     }
                 },
@@ -149,13 +153,12 @@ fun GymmiApp(
                     navController.popBackStack()
                 },
                 onEdit = {
-                    // Navigate to tracking screen with existing workout data
                     navController.navigate(
                         "track_workout/${workout.type.name}/${workout.date}?workoutId=${workout.id}"
                     )
                 },
                 onDelete = {
-                    lifecycleScope.launch {
+                    coroutineScope.launch {
                         database.workoutDao().deleteFullWorkout(workout.id)
                         navController.popBackStack()
                     }
@@ -303,6 +306,14 @@ fun GymmiApp(
                     },
                     onEdit = {
                         navController.popBackStack()
+                    },
+                    onDelete = {
+                        coroutineScope.launch {
+                            database.workoutDao().deleteFullWorkout(workout.id)
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
                     }
                 )
             }
