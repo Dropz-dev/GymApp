@@ -206,16 +206,12 @@ fun GymmiApp(
             val combinedExercises = if (existingWorkout != null) {
                 // Create a map of existing exercises by their ID
                 val existingExerciseMap = existingWorkout.exercises.associateBy { it.exercise.id }
-                val newExerciseMap = newlySelectedExercises.associateBy { it.exercise.id }
                 
-                // Keep existing exercises and only add new ones
-                val mergedExercises = existingExerciseMap.toMutableMap()
-                newExerciseMap.forEach { (id, exercise) ->
-                    if (!mergedExercises.containsKey(id)) {
-                        mergedExercises[id] = exercise
-                    }
+                // For each newly selected exercise, either keep the existing one with its sets
+                // or add the new one if it doesn't exist
+                newlySelectedExercises.map { exercise ->
+                    existingExerciseMap[exercise.exercise.id] ?: exercise
                 }
-                mergedExercises.values.toList()
             } else {
                 newlySelectedExercises
             }
@@ -283,16 +279,11 @@ fun GymmiApp(
                 initialExercises = currentExercises,
                 database = database,
                 onSaveWorkout = { selectedExercises ->
-                    // When saving selection, combine with existing exercises if editing
-                    val finalExercises = if (existingWorkout != null) {
-                        existingWorkout.exercises + selectedExercises
-                    } else {
-                        selectedExercises
-                    }
-                    
+                    // When saving selection, we just pass the selected exercises
+                    // No need to combine here as we'll handle that in the tracking screen
                     navController.previousBackStackEntry
                         ?.savedStateHandle
-                        ?.set("selected_exercises", finalExercises)
+                        ?.set("selected_exercises", selectedExercises)
                     navController.popBackStack()
                 }
             )
