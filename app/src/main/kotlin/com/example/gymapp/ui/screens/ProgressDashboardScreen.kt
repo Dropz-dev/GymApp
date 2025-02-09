@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.Alignment
+import android.content.Context
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,34 +102,9 @@ fun ProgressDashboardScreen(
                     .sortedBy { it.x }
 
                 if (entries.isNotEmpty()) {
+                    val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
                     AndroidView(
-                        factory = { context ->
-                            LineChart(context).apply {
-                                description.isEnabled = false
-                                setTouchEnabled(true)
-                                isDragEnabled = true
-                                setScaleEnabled(true)
-                                setPinchZoom(true)
-                                
-                                val dataSet = LineDataSet(entries, "Volume Progress").apply {
-                                    color = MaterialTheme.colorScheme.primary.toArgb()
-                                    setDrawCircles(true)
-                                    setDrawValues(false)
-                                    lineWidth = 2f
-                                }
-                                
-                                data = LineData(dataSet)
-                                
-                                xAxis.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
-                                    override fun getFormattedValue(value: Float): String {
-                                        return java.time.LocalDate.ofEpochDay(value.toLong())
-                                            .format(DateTimeFormatter.ofPattern("MM/dd"))
-                                    }
-                                }
-                                
-                                invalidate()
-                            }
-                        },
+                        factory = { context -> setupLineChart(context, entries, primaryColor) },
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
@@ -182,6 +158,34 @@ fun ProgressDashboardScreen(
                 }
             }
         }
+    }
+}
+
+private fun setupLineChart(context: Context, entries: List<Entry>, color: Int): LineChart {
+    return LineChart(context).apply {
+        description.isEnabled = false
+        setTouchEnabled(true)
+        isDragEnabled = true
+        setScaleEnabled(true)
+        setPinchZoom(true)
+        
+        val dataSet = LineDataSet(entries, "Volume Progress").apply {
+            this.color = color
+            setDrawCircles(true)
+            setDrawValues(false)
+            lineWidth = 2f
+        }
+        
+        data = LineData(dataSet)
+        
+        xAxis.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return java.time.LocalDate.ofEpochDay(value.toLong())
+                    .format(DateTimeFormatter.ofPattern("MM/dd"))
+            }
+        }
+        
+        invalidate()
     }
 }
 
