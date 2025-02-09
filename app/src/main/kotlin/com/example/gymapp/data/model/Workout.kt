@@ -12,7 +12,8 @@ data class Workout(
 
 data class WorkoutExercise(
     val exercise: Exercise,
-    val sets: List<WorkoutSet>
+    val sets: List<WorkoutSet>,
+    val uniqueId: String = java.util.UUID.randomUUID().toString()
 )
 
 data class WorkoutSet(

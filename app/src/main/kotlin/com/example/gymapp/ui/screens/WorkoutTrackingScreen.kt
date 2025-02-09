@@ -70,7 +70,7 @@ fun WorkoutTrackingScreen(
                         exercise = exercise,
                         onSetsUpdated = { updatedSets ->
                             exercises = exercises.map { e ->
-                                if (e == exercise) {
+                                if (e.uniqueId == exercise.uniqueId) {
                                     exercise.copy(sets = updatedSets)
                                 } else {
                                     e
@@ -78,7 +78,7 @@ fun WorkoutTrackingScreen(
                             }
                         },
                         onDeleteExercise = {
-                            exercises = exercises.filter { it != exercise }
+                            exercises = exercises.filter { it.uniqueId != exercise.uniqueId }
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
