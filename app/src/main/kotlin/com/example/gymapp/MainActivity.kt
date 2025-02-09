@@ -147,13 +147,7 @@ fun GymmiApp(
                     // Navigate to tracking screen with existing workout data
                     navController.navigate(
                         "track_workout/${workout.type.name}/${workout.date}?workoutId=${workout.id}"
-                    ) {
-                        // Save the exercises to be edited
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "selected_exercises",
-                            workout.exercises
-                        )
-                    }
+                    )
                 }
             )
         }
@@ -200,34 +194,35 @@ fun GymmiApp(
             val newlySelectedExercises = navController
                 .currentBackStackEntry
                 ?.savedStateHandle
-                ?.get<List<WorkoutExercise>>("selected_exercises") ?: emptyList()
+                ?.get<List<WorkoutExercise>>("selected_exercises")
 
-            // Combine existing and newly selected exercises
-            val combinedExercises = if (existingWorkout != null) {
-                // Start with all existing exercises
-                val exercises = existingWorkout.exercises.toMutableList()
-                
-                // Add only new exercises that don't exist yet
-                newlySelectedExercises.forEach { newExercise ->
-                    if (exercises.none { it.exercise.id == newExercise.exercise.id }) {
-                        exercises.add(newExercise)
+            // Determine which exercises to show
+            val initialExercises = when {
+                // If we're editing and have new selections, use those
+                existingWorkout != null && newlySelectedExercises != null -> {
+                    // Create a set of exercise IDs that are already in the workout
+                    val existingExerciseIds = existingWorkout.exercises.map { it.exercise.id }.toSet()
+                    
+                    // Only add exercises that aren't already in the workout
+                    val newExercises = newlySelectedExercises.filter { 
+                        it.exercise.id !in existingExerciseIds 
                     }
+                    
+                    existingWorkout.exercises + newExercises
                 }
-                
-                exercises
-            } else {
-                newlySelectedExercises
+                // If we're editing but no new selections, use existing exercises
+                existingWorkout != null -> existingWorkout.exercises
+                // If we have new selections but aren't editing, use those
+                newlySelectedExercises != null -> newlySelectedExercises
+                // Otherwise, start with empty list
+                else -> emptyList()
             }
             
             WorkoutTrackingScreen(
                 workoutType = workoutType,
                 date = date,
-                initialExercises = combinedExercises,
+                initialExercises = initialExercises,
                 onAddExercises = {
-                    // When adding exercises during edit, only pass the newly added ones
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("current_exercises", emptyList<WorkoutExercise>())  // Start fresh for selection
                     navController.navigate(
                         "select_exercises/${workoutType.name}/${date}?workoutId=${workoutId}"
                     )
@@ -270,20 +265,12 @@ fun GymmiApp(
                 workouts.find { it.id == workoutId }
             } else null
             
-            // Get currently selected exercises (new ones only)
-            val currentExercises = navController
-                .previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<List<WorkoutExercise>>("current_exercises") ?: emptyList()
-            
             ExerciseSelectionScreen(
                 workoutType = workoutType,
                 date = date,
-                initialExercises = currentExercises,
+                initialExercises = emptyList(),
                 database = database,
                 onSaveWorkout = { selectedExercises ->
-                    // When saving selection, we just pass the selected exercises
-                    // No need to combine here as we'll handle that in the tracking screen
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("selected_exercises", selectedExercises)
