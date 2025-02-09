@@ -76,6 +76,9 @@ fun WorkoutTrackingScreen(
                                     e
                                 }
                             }
+                        },
+                        onDeleteExercise = {
+                            exercises = exercises.filter { it != exercise }
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -139,10 +142,12 @@ fun WorkoutTrackingScreen(
 @Composable
 fun ExerciseTrackingCard(
     exercise: WorkoutExercise,
-    onSetsUpdated: (List<WorkoutSet>) -> Unit
+    onSetsUpdated: (List<WorkoutSet>) -> Unit,
+    onDeleteExercise: () -> Unit
 ) {
     var sets by remember { mutableStateOf(exercise.sets) }
     var showAddSetDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -153,11 +158,24 @@ fun ExerciseTrackingCard(
             modifier = Modifier
                 .padding(16.dp)
         ) {
-            Text(
-                text = exercise.exercise.name,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = exercise.exercise.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { showDeleteConfirmation = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete exercise",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
 
             if (sets.isEmpty()) {
                 Text(
@@ -260,6 +278,32 @@ fun ExerciseTrackingCard(
             },
             dismissButton = {
                 TextButton(onClick = { showAddSetDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Exercise") },
+            text = { Text("Are you sure you want to remove ${exercise.exercise.name} from this workout?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteExercise()
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
                     Text("Cancel")
                 }
             }
