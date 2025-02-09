@@ -225,26 +225,19 @@ fun GymmiApp(
                 date = date,
                 initialExercises = combinedExercises,
                 onAddExercises = {
+                    // When adding exercises during edit, only pass the newly added ones
                     navController.currentBackStackEntry
                         ?.savedStateHandle
-                        ?.set("current_exercises", combinedExercises)
+                        ?.set("current_exercises", emptyList<WorkoutExercise>())  // Start fresh for selection
                     navController.navigate(
-                        "select_exercises/${workoutType.name}/${date}"
+                        "select_exercises/${workoutType.name}/${date}?workoutId=${workoutId}"
                     )
                 },
                 onSaveWorkout = { workout ->
                     val finalWorkout = if (workoutId != -1L) {
-                        // For updates, ensure we keep existing exercise data
-                        val existingExerciseMap = existingWorkout?.exercises?.associateBy { it.exercise.id } ?: emptyMap()
-                        val updatedExercises = workout.exercises.map { exercise ->
-                            existingExerciseMap[exercise.exercise.id] ?: exercise
-                        }
-                        workout.copy(
-                            id = workoutId,
-                            exercises = updatedExercises
-                        )
+                        workout.copy(id = workoutId)
                     } else {
-                        workout  // New workout keeps its generated ID
+                        workout
                     }
                     onSaveWorkout(finalWorkout)
                     navController.navigate("home") {
@@ -255,10 +248,14 @@ fun GymmiApp(
         }
 
         composable(
-            route = "select_exercises/{workoutType}/{date}",
+            route = "select_exercises/{workoutType}/{date}?workoutId={workoutId}",
             arguments = listOf(
                 navArgument("workoutType") { type = NavType.StringType },
-                navArgument("date") { type = NavType.StringType }
+                navArgument("date") { type = NavType.StringType },
+                navArgument("workoutId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
             )
         ) { backStackEntry ->
             val workoutType = WorkoutType.valueOf(
@@ -267,7 +264,14 @@ fun GymmiApp(
             val date = LocalDate.parse(
                 backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
             )
+            val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: -1L
             
+            // Get the existing workout if we're editing
+            val existingWorkout = if (workoutId != -1L) {
+                workouts.find { it.id == workoutId }
+            } else null
+            
+            // Get currently selected exercises (new ones only)
             val currentExercises = navController
                 .previousBackStackEntry
                 ?.savedStateHandle
@@ -279,9 +283,16 @@ fun GymmiApp(
                 initialExercises = currentExercises,
                 database = database,
                 onSaveWorkout = { selectedExercises ->
+                    // When saving selection, combine with existing exercises if editing
+                    val finalExercises = if (existingWorkout != null) {
+                        existingWorkout.exercises + selectedExercises
+                    } else {
+                        selectedExercises
+                    }
+                    
                     navController.previousBackStackEntry
                         ?.savedStateHandle
-                        ?.set("selected_exercises", selectedExercises)
+                        ?.set("selected_exercises", finalExercises)
                     navController.popBackStack()
                 }
             )
