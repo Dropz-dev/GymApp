@@ -204,14 +204,17 @@ fun GymmiApp(
 
             // Combine existing and newly selected exercises
             val combinedExercises = if (existingWorkout != null) {
-                // Create a map of existing exercises by their ID
-                val existingExerciseMap = existingWorkout.exercises.associateBy { it.exercise.id }
+                // Start with all existing exercises
+                val exercises = existingWorkout.exercises.toMutableList()
                 
-                // For each newly selected exercise, either keep the existing one with its sets
-                // or add the new one if it doesn't exist
-                newlySelectedExercises.map { exercise ->
-                    existingExerciseMap[exercise.exercise.id] ?: exercise
+                // Add only new exercises that don't exist yet
+                newlySelectedExercises.forEach { newExercise ->
+                    if (exercises.none { it.exercise.id == newExercise.exercise.id }) {
+                        exercises.add(newExercise)
+                    }
                 }
+                
+                exercises
             } else {
                 newlySelectedExercises
             }
