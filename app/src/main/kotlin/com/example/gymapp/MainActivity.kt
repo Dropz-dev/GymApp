@@ -124,6 +124,11 @@ fun GymmiApp(
                     // Navigate to workout details screen
                     navController.navigate("workout_details/${workout.id}")
                 },
+                onDeleteWorkout = { workout ->
+                    lifecycleScope.launch {
+                        database.workoutDao().deleteFullWorkout(workout.id)
+                    }
+                },
                 recentWorkouts = workouts.sortedByDescending { it.date }
             )
         }

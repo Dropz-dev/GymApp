@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -18,8 +18,11 @@ import java.time.format.DateTimeFormatter
 private fun WorkoutHistoryCard(
     workout: Workout,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -32,16 +35,29 @@ private fun WorkoutHistoryCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = workout.type.toString(),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = workout.date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = workout.type.toString(),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = workout.date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                
+                IconButton(
+                    onClick = { showDeleteConfirmation = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete workout",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -65,6 +81,32 @@ private fun WorkoutHistoryCard(
             )
         }
     }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Workout") },
+            text = { Text("Are you sure you want to delete this workout? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -72,6 +114,7 @@ fun HomeScreen(
     onWeighInClick: () -> Unit,
     onTrainingClick: () -> Unit,
     onWorkoutClick: (Workout) -> Unit,
+    onDeleteWorkout: (Workout) -> Unit,
     recentWorkouts: List<Workout> = emptyList()
 ) {
     LazyColumn(
@@ -127,6 +170,7 @@ fun HomeScreen(
             WorkoutHistoryCard(
                 workout = workout,
                 onClick = { onWorkoutClick(workout) },
+                onDelete = { onDeleteWorkout(workout) },
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
