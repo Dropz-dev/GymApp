@@ -56,9 +56,10 @@ fun ProgressDashboardScreen(
                     .fillMaxWidth()
             )
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.exposedDropdownSize()
             ) {
                 exercises.forEach { exercise ->
                     DropdownMenuItem(
@@ -92,7 +93,7 @@ fun ProgressDashboardScreen(
                             .map { set ->
                                 Entry(
                                     workout.date.toEpochDay().toFloat(),
-                                    set.weight * set.reps // Volume calculation
+                                    set.weight * set.reps
                                 )
                             }
                     }

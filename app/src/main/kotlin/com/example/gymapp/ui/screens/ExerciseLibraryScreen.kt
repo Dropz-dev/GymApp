@@ -12,6 +12,7 @@ import com.example.gymapp.data.model.Exercise
 import com.example.gymapp.data.model.ExerciseDetails
 import androidx.compose.foundation.clickable
 import com.example.gymapp.data.model.ExerciseList
+import com.example.gymapp.data.model.ExerciseCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,7 @@ fun ExerciseLibraryScreen(
 
         // Category filter
         ScrollableTabRow(
-            selectedTabIndex = ExerciseCategory.values().indexOf(selectedCategory) + 1,
+            selectedTabIndex = if (selectedCategory == null) 0 else ExerciseCategory.values().indexOf(selectedCategory) + 1,
             modifier = Modifier.padding(bottom = 16.dp)
         ) {
             Tab(
@@ -60,7 +61,7 @@ fun ExerciseLibraryScreen(
                     selected = selectedCategory == category,
                     onClick = { selectedCategory = category }
                 ) {
-                    Text(category.name, modifier = Modifier.padding(8.dp))
+                    Text(category.toString(), modifier = Modifier.padding(8.dp))
                 }
             }
         }
@@ -98,8 +99,7 @@ fun ExerciseDetailCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        onClick = onClick
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -109,7 +109,7 @@ fun ExerciseDetailCard(
                 style = MaterialTheme.typography.titleLarge
             )
             Text(
-                text = exercise.category,
+                text = exercise.category.toString(),
                 style = MaterialTheme.typography.bodyMedium
             )
             
