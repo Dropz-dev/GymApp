@@ -16,8 +16,11 @@ import java.time.format.DateTimeFormatter
 fun WorkoutSummaryScreen(
     workout: Workout,
     onConfirm: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,7 +119,7 @@ fun WorkoutSummaryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedButton(
                 onClick = onEdit,
@@ -131,6 +134,42 @@ fun WorkoutSummaryScreen(
             ) {
                 Text("Save")
             }
+
+            Button(
+                onClick = { showDeleteConfirmation = true },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Delete")
+            }
         }
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Workout") },
+            text = { Text("Are you sure you want to delete this workout? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirmation = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 } 

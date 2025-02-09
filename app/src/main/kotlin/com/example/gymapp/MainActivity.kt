@@ -148,6 +148,12 @@ fun GymmiApp(
                     navController.navigate(
                         "track_workout/${workout.type.name}/${workout.date}?workoutId=${workout.id}"
                     )
+                },
+                onDelete = {
+                    lifecycleScope.launch {
+                        database.workoutDao().deleteFullWorkout(workout.id)
+                        navController.popBackStack()
+                    }
                 }
             )
         }
