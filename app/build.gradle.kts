@@ -89,4 +89,11 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    // Charts for progress visualization
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+}
+
+repositories {
+    maven { url = uri("https://jitpack.io") }
 }

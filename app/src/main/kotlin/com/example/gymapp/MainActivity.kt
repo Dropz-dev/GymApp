@@ -133,6 +133,18 @@ fun GymmiApp(
                         database.workoutDao().deleteFullWorkout(workout.id)
                     }
                 },
+                onProgressClick = {
+                    navController.navigate("progress_dashboard")
+                },
+                onLibraryClick = {
+                    navController.navigate("exercise_library")
+                },
+                onProgramsClick = {
+                    navController.navigate("programs")
+                },
+                onNutritionClick = {
+                    navController.navigate("nutrition")
+                },
                 recentWorkouts = workouts.sortedByDescending { it.date }
             )
         }
@@ -317,6 +329,48 @@ fun GymmiApp(
                     }
                 )
             }
+        }
+
+        // Add progress dashboard route
+        composable("progress_dashboard") {
+            ProgressDashboardScreen(
+                workouts = workouts,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Add exercise library route
+        composable("exercise_library") {
+            ExerciseLibraryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Add programs route
+        composable("programs") {
+            ProgramsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onProgramSelected = { program ->
+                    // For now, just navigate to create workout
+                    // In the future, we can add program tracking
+                    navController.navigate("create_workout")
+                }
+            )
+        }
+
+        // Add nutrition route
+        composable("nutrition") {
+            NutritionScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 } 

@@ -117,6 +117,10 @@ fun HomeScreen(
     onTrainingClick: () -> Unit,
     onWorkoutClick: (Workout) -> Unit,
     onDeleteWorkout: (Workout) -> Unit,
+    onProgressClick: () -> Unit,
+    onLibraryClick: () -> Unit,
+    onProgramsClick: () -> Unit,
+    onNutritionClick: () -> Unit,
     recentWorkouts: List<Workout> = emptyList()
 ) {
     LazyColumn(
@@ -132,30 +136,97 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            ElevatedButton(
-                onClick = onWeighInClick,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Track Weight",
-                    fontSize = 24.sp
-                )
+                ElevatedButton(
+                    onClick = onWeighInClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Track Weight",
+                        fontSize = 24.sp
+                    )
+                }
+
+                ElevatedButton(
+                    onClick = onProgressClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Progress",
+                        fontSize = 24.sp
+                    )
+                }
             }
 
-            ElevatedButton(
-                onClick = onTrainingClick,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Start Training",
-                    fontSize = 24.sp
-                )
+                ElevatedButton(
+                    onClick = onTrainingClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Start Training",
+                        fontSize = 24.sp
+                    )
+                }
+
+                ElevatedButton(
+                    onClick = onLibraryClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Exercise Library",
+                        fontSize = 24.sp
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ElevatedButton(
+                    onClick = onProgramsClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Programs",
+                        fontSize = 24.sp
+                    )
+                }
+
+                ElevatedButton(
+                    onClick = onNutritionClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "Nutrition",
+                        fontSize = 24.sp
+                    )
+                }
             }
 
             if (recentWorkouts.isNotEmpty()) {
