@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,9 +134,9 @@ fun ProgressDashboardScreen(
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = androidx.compose.ui.Alignment.Center
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("No data available for this exercise")
+                        NoDataMessage()
                     }
                 }
             }
@@ -182,4 +183,9 @@ fun ProgressDashboardScreen(
             }
         }
     }
+}
+
+@Composable
+private fun NoDataMessage() {
+    Text("No data available for this exercise")
 } 
