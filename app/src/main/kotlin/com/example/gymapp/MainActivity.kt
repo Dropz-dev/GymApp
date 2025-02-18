@@ -90,13 +90,15 @@ fun GymmiApp(
                                         name = exerciseWithSets.exercise.exerciseName,
                                         category = ExerciseCategory.valueOf(exerciseWithSets.exercise.exerciseCategory)
                                     ),
-                                    sets = exerciseWithSets.sets.map { set ->
-                                        WorkoutSet(
-                                            setNumber = set.setNumber,
-                                            weight = set.weight,
-                                            reps = set.reps
-                                        )
-                                    }.toList()
+                                    sets = exerciseWithSets.sets
+                                        .sortedBy { it.setNumber }
+                                        .map { set ->
+                                            WorkoutSet(
+                                                setNumber = set.setNumber,
+                                                weight = set.weight,
+                                                reps = set.reps
+                                            )
+                                        }
                                 )
                             }
                         )
