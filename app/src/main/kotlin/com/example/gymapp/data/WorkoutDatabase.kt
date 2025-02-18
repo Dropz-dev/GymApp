@@ -174,14 +174,20 @@ interface WorkoutDao {
 
 @Dao
 interface CustomExerciseDao {
-    @Query("SELECT * FROM custom_exercises")
+    @Query("SELECT * FROM custom_exercises ORDER BY name ASC")
     fun getAllCustomExercises(): Flow<List<CustomExerciseEntity>>
 
-    @Insert
+    @Query("SELECT * FROM custom_exercises WHERE id = :id")
+    suspend fun getCustomExerciseById(id: Long): CustomExerciseEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCustomExercise(exercise: CustomExerciseEntity): Long
 
     @Delete
     suspend fun deleteCustomExercise(exercise: CustomExerciseEntity)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM custom_exercises WHERE name = :name)")
+    suspend fun exerciseExists(name: String): Boolean
 }
 
 @Database(

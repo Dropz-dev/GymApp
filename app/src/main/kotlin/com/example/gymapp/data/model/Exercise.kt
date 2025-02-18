@@ -5,7 +5,20 @@ data class Exercise(
     val name: String,
     val category: ExerciseCategory,
     val isCustom: Boolean = false
-)
+) {
+    companion object {
+        private var nextCustomId = 1000L  // Start custom IDs from 1000 to avoid conflicts with predefined exercises
+        
+        fun createCustom(name: String, category: ExerciseCategory): Exercise {
+            return Exercise(
+                id = nextCustomId++,
+                name = name,
+                category = category,
+                isCustom = true
+            )
+        }
+    }
+}
 
 enum class ExerciseCategory {
     CHEST,
