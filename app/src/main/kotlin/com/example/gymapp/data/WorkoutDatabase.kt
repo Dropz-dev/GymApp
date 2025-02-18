@@ -6,6 +6,8 @@ import com.example.gymapp.data.model.*
 import com.example.gymapp.ui.screens.WorkoutType
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 
 @Entity(tableName = "workouts")
 data class WorkoutEntity(
@@ -57,6 +59,27 @@ data class WorkoutExerciseWithSets(
         entityColumn = "exerciseId"
     )
     val sets: List<WorkoutSetEntity>
+)
+
+@Entity(tableName = "workout_progress")
+data class WorkoutProgressEntity(
+    @PrimaryKey val id: Long,
+    val type: String,
+    val date: LocalDate,
+    val exercises: List<WorkoutExerciseProgressEntity>
+)
+
+data class WorkoutExerciseProgressEntity(
+    val exerciseId: Long,
+    val exerciseName: String,
+    val exerciseCategory: String,
+    val sets: List<WorkoutSetProgressEntity>
+)
+
+data class WorkoutSetProgressEntity(
+    val setNumber: Int,
+    val weight: Float,
+    val reps: Int
 )
 
 @Dao
@@ -190,12 +213,25 @@ interface CustomExerciseDao {
     suspend fun exerciseExists(name: String): Boolean
 }
 
+@Dao
+interface WorkoutAutoSaveDao {
+    @Query("SELECT * FROM workout_progress WHERE id = :workoutId")
+    fun getWorkoutProgress(workoutId: Long): Flow<WorkoutProgressEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveWorkoutProgress(workout: WorkoutProgressEntity)
+
+    @Query("DELETE FROM workout_progress WHERE id = :workoutId")
+    suspend fun clearWorkoutProgress(workoutId: Long)
+}
+
 @Database(
     entities = [
         WorkoutEntity::class,
         WorkoutExerciseEntity::class,
         WorkoutSetEntity::class,
-        CustomExerciseEntity::class
+        CustomExerciseEntity::class,
+        WorkoutProgressEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -204,6 +240,7 @@ interface CustomExerciseDao {
 abstract class WorkoutDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
     abstract fun customExerciseDao(): CustomExerciseDao
+    abstract fun workoutAutoSaveDao(): WorkoutAutoSaveDao
 
     companion object {
         @Volatile
@@ -232,5 +269,25 @@ class Converters {
     @TypeConverter
     fun dateToTimestamp(date: LocalDate?): Long? {
         return date?.toEpochDay()
+    }
+
+    @TypeConverter
+    fun fromWorkoutExerciseProgressList(value: List<WorkoutExerciseProgressEntity>): String {
+        return Json.encodeToString(value)
+    }
+
+    @TypeConverter
+    fun toWorkoutExerciseProgressList(value: String): List<WorkoutExerciseProgressEntity> {
+        return Json.decodeFromString(value)
+    }
+
+    @TypeConverter
+    fun fromWorkoutSetProgressList(value: List<WorkoutSetProgressEntity>): String {
+        return Json.encodeToString(value)
+    }
+
+    @TypeConverter
+    fun toWorkoutSetProgressList(value: String): List<WorkoutSetProgressEntity> {
+        return Json.decodeFromString(value)
     }
 } 

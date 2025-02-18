@@ -156,6 +156,11 @@ fun ExerciseTrackingCard(
     var showAddSetDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    // Get the last set's values for suggestions
+    val lastSet = sets.maxByOrNull { it.setNumber }
+    val suggestedWeight = lastSet?.weight
+    val suggestedReps = lastSet?.reps
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,32 +239,70 @@ fun ExerciseTrackingCard(
     }
 
     if (showAddSetDialog) {
-        var weight by remember { mutableStateOf("") }
-        var reps by remember { mutableStateOf("") }
+        var weight by remember { mutableStateOf(suggestedWeight?.toString() ?: "") }
+        var reps by remember { mutableStateOf(suggestedReps?.toString() ?: "") }
+        var currentInput by remember { mutableStateOf<String?>(null) }
 
         AlertDialog(
             onDismissRequest = { showAddSetDialog = false },
             title = { Text("Add Set") },
             text = {
-                Column {
-                    OutlinedTextField(
-                        value = weight,
-                        onValueChange = { weight = it },
-                        label = { Text("Weight (kg)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    )
-                    OutlinedTextField(
-                        value = reps,
-                        onValueChange = { reps = it },
-                        label = { Text("Reps") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    )
+                Column(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (currentInput == "weight") {
+                        NumberPadInput(
+                            value = weight,
+                            onValueChange = { weight = it },
+                            label = "Weight (kg)",
+                            maxValue = 500f, // Reasonable maximum weight
+                            onDone = { currentInput = "reps" }
+                        )
+                    } else if (currentInput == "reps") {
+                        NumberPadInput(
+                            value = reps,
+                            onValueChange = { reps = it },
+                            label = "Reps",
+                            maxValue = 100f, // Reasonable maximum reps
+                            showDecimal = false,
+                            onDone = { currentInput = null }
+                        )
+                    } else {
+                        // Show both fields with suggestions
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            OutlinedTextField(
+                                value = weight,
+                                onValueChange = { },
+                                label = { Text("Weight (kg)") },
+                                readOnly = true,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { currentInput = "weight" }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedTextField(
+                                value = reps,
+                                onValueChange = { },
+                                label = { Text("Reps") },
+                                readOnly = true,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { currentInput = "reps" }
+                            )
+                        }
+
+                        if (suggestedWeight != null && suggestedReps != null) {
+                            Text(
+                                text = "Previous set: ${suggestedWeight}kg × $suggestedReps reps",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -268,17 +311,22 @@ fun ExerciseTrackingCard(
                         val weightNum = weight.toFloatOrNull()
                         val repsNum = reps.toIntOrNull()
                         if (weightNum != null && repsNum != null) {
-                            val newSet = WorkoutSet(
-                                setNumber = sets.size + 1,
-                                weight = weightNum,
-                                reps = repsNum
-                            )
-                            sets = sets + newSet
-                            onSetsUpdated(sets)
-                            showAddSetDialog = false
+                            // Validate the input
+                            if (weightNum > 0 && weightNum <= 500 && 
+                                repsNum > 0 && repsNum <= 100) {
+                                val newSet = WorkoutSet(
+                                    setNumber = sets.size + 1,
+                                    weight = weightNum,
+                                    reps = repsNum
+                                )
+                                sets = sets + newSet
+                                onSetsUpdated(sets)
+                                showAddSetDialog = false
+                            }
                         }
                     },
-                    enabled = weight.isNotEmpty() && reps.isNotEmpty()
+                    enabled = weight.isNotEmpty() && reps.isNotEmpty() &&
+                             weight.toFloatOrNull() != null && reps.toIntOrNull() != null
                 ) {
                     Text("Add")
                 }
