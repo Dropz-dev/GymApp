@@ -92,8 +92,12 @@ interface WorkoutDao {
 
     @Transaction
     suspend fun insertFullWorkout(workout: Workout) {
-        // For updates, we want to keep existing exercises and their sets
+        // For updates, we need to handle existing data
         if (workout.id != 0L) {
+            // First, delete all existing sets and exercises
+            deleteWorkoutSets(workout.id)
+            deleteWorkoutExercises(workout.id)
+            
             // Update the workout entity
             insertWorkout(
                 WorkoutEntity(
@@ -103,22 +107,8 @@ interface WorkoutDao {
                 )
             )
 
-            // Get map of existing exercises
-            val existingExercises = workout.exercises.associateBy { 
-                "${it.exercise.id}_${workout.id}" 
-            }
-
-            // Delete exercises that are no longer present
-            deleteWorkoutExercisesNotIn(
-                workout.id,
-                workout.exercises.map { it.exercise.id }.toSet()
-            )
-
-            // Update or insert exercises and their sets
-            workout.exercises.forEach { exercise ->
-                val exerciseKey = "${exercise.exercise.id}_${workout.id}"
-                
-                // Insert or update the exercise
+            // Insert the updated exercises and sets
+            workout.exercises.distinctBy { it.exercise.id }.forEach { exercise ->
                 val exerciseId = insertWorkoutExercise(
                     WorkoutExerciseEntity(
                         workoutId = workout.id,
@@ -128,24 +118,16 @@ interface WorkoutDao {
                     )
                 )
 
-                // Only update sets if they've changed
-                if (!existingExercises.containsKey(exerciseKey) || 
-                    existingExercises[exerciseKey]?.sets != exercise.sets) {
-                    // Delete existing sets for this exercise
-                    deleteWorkoutSetsForExercise(workout.id, exerciseId)
-
-                    // Insert new sets
-                    exercise.sets.forEach { set ->
-                        insertWorkoutSet(
-                            WorkoutSetEntity(
-                                workoutId = workout.id,
-                                exerciseId = exerciseId,
-                                setNumber = set.setNumber,
-                                weight = set.weight,
-                                reps = set.reps
-                            )
+                exercise.sets.forEach { set ->
+                    insertWorkoutSet(
+                        WorkoutSetEntity(
+                            workoutId = workout.id,
+                            exerciseId = exerciseId,
+                            setNumber = set.setNumber,
+                            weight = set.weight,
+                            reps = set.reps
                         )
-                    }
+                    )
                 }
             }
         } else {
@@ -158,7 +140,7 @@ interface WorkoutDao {
                 )
             )
 
-            workout.exercises.forEach { exercise ->
+            workout.exercises.distinctBy { it.exercise.id }.forEach { exercise ->
                 val exerciseId = insertWorkoutExercise(
                     WorkoutExerciseEntity(
                         workoutId = workoutId,

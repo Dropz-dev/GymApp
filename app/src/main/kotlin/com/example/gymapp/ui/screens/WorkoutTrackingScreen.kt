@@ -26,8 +26,12 @@ fun WorkoutTrackingScreen(
     onAddExercises: () -> Unit,
     onSaveWorkout: (Workout) -> Unit
 ) {
-    var exercises by remember { mutableStateOf(initialExercises) }
+    var exercises by remember(initialExercises) { mutableStateOf(initialExercises) }
     var showSaveDialog by remember { mutableStateOf(false) }
+
+    val originalExerciseIds = remember(initialExercises) {
+        initialExercises.map { it.exercise.id }.toSet()
+    }
 
     Column(
         modifier = Modifier
@@ -65,7 +69,10 @@ fun WorkoutTrackingScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                items(exercises) { exercise ->
+                items(
+                    items = exercises.distinctBy { it.uniqueId },
+                    key = { it.uniqueId }
+                ) { exercise ->
                     ExerciseTrackingCard(
                         exercise = exercise,
                         onSetsUpdated = { updatedSets ->
@@ -121,7 +128,7 @@ fun WorkoutTrackingScreen(
                             id = System.currentTimeMillis(),
                             type = workoutType,
                             date = date,
-                            exercises = exercises
+                            exercises = exercises.distinctBy { it.uniqueId }
                         )
                         onSaveWorkout(workout)
                         showSaveDialog = false

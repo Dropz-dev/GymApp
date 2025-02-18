@@ -226,15 +226,16 @@ fun GymmiApp(
             val initialExercises = when {
                 // If we're editing and have new selections, use those
                 existingWorkout != null && newlySelectedExercises != null -> {
-                    // Create a set of exercise IDs that are already in the workout
-                    val existingExerciseIds = existingWorkout.exercises.map { it.exercise.id }.toSet()
+                    // Create a map of existing exercises by their ID
+                    val existingExercisesMap = existingWorkout.exercises.associateBy { it.exercise.id }
                     
-                    // Only add exercises that aren't already in the workout
-                    val newExercises = newlySelectedExercises.filter { 
-                        it.exercise.id !in existingExerciseIds 
-                    }
-                    
-                    existingWorkout.exercises + newExercises
+                    // Combine existing and new exercises, preserving sets for existing ones
+                    (existingWorkout.exercises + newlySelectedExercises)
+                        .distinctBy { it.exercise.id }
+                        .map { exercise ->
+                            // If this exercise already existed, keep its sets
+                            existingExercisesMap[exercise.exercise.id] ?: exercise
+                        }
                 }
                 // If we're editing but no new selections, use existing exercises
                 existingWorkout != null -> existingWorkout.exercises
