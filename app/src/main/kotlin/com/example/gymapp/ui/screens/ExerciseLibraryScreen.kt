@@ -2,6 +2,7 @@ package com.example.gymapp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymapp.data.WorkoutDatabase
+import com.example.gymapp.data.CustomExerciseEntity
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -303,14 +305,16 @@ private fun AddExerciseDialog(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
+                // Category selection chips in a scrollable row
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(ExerciseCategory.values().toList()) { category ->
+                    items(ExerciseCategory.values()) { category ->
                         FilterChip(
                             selected = selectedCategory == category,
                             onClick = { selectedCategory = category },
-                            label = { Text(category.name) }
+                            label = { Text(category.toString()) }
                         )
                     }
                 }
@@ -320,7 +324,7 @@ private fun AddExerciseDialog(
             Button(
                 onClick = {
                     selectedCategory?.let { category ->
-                        onExerciseAdded(exerciseName, category)
+                        onExerciseAdded(exerciseName.trim(), category)
                     }
                 },
                 enabled = exerciseName.isNotBlank() && selectedCategory != null
